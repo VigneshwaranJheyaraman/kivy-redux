@@ -20,9 +20,11 @@ class Store(object):
                 raise NotReducerType("Expected a Reducer object got an {}".format(type(each_reducer)))
             self.__store_reducers[each_reducer.id] = each_reducer.reducer
         self.__widgets_connections = {}
+        self.__num_of_connections =0
         self.__widget_connection_object = {
             StoreProps.mapping:[],
-            StoreProps.binding:[]
+            StoreProps.binding:[],
+            StoreProps.widget:None
         }
         self.__map_property_object = {
             StoreProps.map_cb:None, 
@@ -60,7 +62,7 @@ class Store(object):
             raise NoWidgetConnected("Cannot map or bind with None object first connect the store with the Widget")
         if dispatcher and ConnectionProps.init in dispatcher:
             del dispatcher[ConnectionProps.init]
-        self.__update_connections(widget, mapper, dispatcher, replace_map, replace_bind)
+        self.__update_connections(widget, mapper, dispatcher, replace_map=replace_mapping, replace_bind=replace_bind)
     
     def __add_widget_mappers(self, widget_connections, new_mapper, replace =False):
         '''
@@ -72,7 +74,8 @@ class Store(object):
         previously_mapped_functions = [] if replace else widget_connections.get(StoreProps.mapping, [])
         new_mapper_object = deepcopy(self.__map_property_object)
         new_mapper_object[StoreProps.map_cb] = new_mapper
-        widget_connections[StoreProps.mapping] = previously_mapped_functions.append(new_mapper_object)
+        previously_mapped_functions.append(new_mapper_object)
+        widget_connections[StoreProps.mapping] = previously_mapped_functions
         return widget_connections
     
     def __add_widget_binders(self, widget, widget_connections, new_bind_props, replace=False):
@@ -107,11 +110,14 @@ class Store(object):
         '''
         for prop in widget_dispatch_props:
             if not prop.get(StoreProps.bind_bounded):
-                widget.bind(**{prop.get(StoreProps.bind_prop): prop.get(StoreProps.bind_dispatch)})
+                dispatch_function = prop.get(StoreProps.bind_dispatch)
+                if not dispatch_function:
+                    raise AttributeError("Expected function got {} object check the function with property".format(type(dispatch_function)))
+                widget.bind(**{prop.get(StoreProps.bind_prop): dispatch_function})
                 prop[StoreProps.bind_bounded] = True
-        return widget_dispatch_props                
+        return widget_dispatch_props
 
-    def __connect(self, mapper=None, dispatcher =None, widget):
+    def __connect(self, widget, mapper=None, dispatcher =None):
         '''
             Establish a connection with widget [Internal]
             @param mapper:mapping function defaults to None
@@ -123,6 +129,7 @@ class Store(object):
             mapper=mapper,
             dispatcher=dispatcher
         )
+        self.__num_of_connections+=1
         return widget
         
     def connect(self, mapper=None, dispatcher=None, widget=None):
@@ -130,12 +137,37 @@ class Store(object):
             Function to connect store with widget
         '''
         if not widget:
-            raise NoWidgetConnected("Excepted Widget type object instead got".format(type(widget)))
-        if type(widget).__name__ == "function":
+            raise NoWidgetConnected("Excepted Widget type object instead got {}".format(type(widget)))
+        if "function" in str(widget):
             #its a functional component
-            return lambda *largs, **kwargs : self.__connect(mapper, dispatcher, widget(*largs, **kwargs))
+            return lambda *largs, **kwargs : self.__connect(
+                mapper=mapper, 
+                dispatcher=dispatcher, 
+                widget=widget(*largs, **kwargs)
+            )
+        elif "class" in str(widget):
+            store_connector = self.__connect
+            def init_function(self, **kwargs):
+                super(new_class, self).__init__(**kwargs)
+                store_connector(
+                    mapper=mapper, 
+                    dispatcher=dispatcher, 
+                    widget=self
+                )
+            widget_name = widget.__name__
+            if hasattr(widget, StoreProps.widget_name_prop):
+                widget_name = widget.__widget__
+            new_class= type(widget_name, (widget, ), {
+                '__init__':lambda self, **kwargs: init_function(self, **kwargs)
+            })
+            return new_class
         else:
-            return self.__connect(mapper, dispatcher, widget)
+            return self.__connect(
+                mapper=mapper,
+                dispatcher=dispatcher,
+                widget=widget,
+            )
+
         
     def __dispatch(self, action):
         '''
@@ -152,8 +184,9 @@ class Store(object):
         widgets_list = self.__widgets_connections
         for widget in widgets_list:
             mapped_callbacks =widgets_list[widget].get(StoreProps.mapping)
+            widget_comp = widgets_list[widget].get(StoreProps.widget)
             for map_function in mapped_callbacks:
-                map_function.get(StoreProps.map_cb) and map_function.get(StoreProps.map_cb)(self.state, widget)
+                map_function.get(StoreProps.map_cb) and map_function.get(StoreProps.map_cb)(self.state, widget_comp)
 
     def __update_state_with_reducer(self, action):
         '''
@@ -162,7 +195,7 @@ class Store(object):
         '''
         reducers_list = self.__store_reducers
         for each_reducer in reducers_list:
-            self.__store = reducers_list[each_reducer].reducer(action, self.state)
+            self.__store = reducers_list[each_reducer](action, self.state)
     
     def __update_connections(self, widget, mapper=None, dispatcher=None, replace_map=False, replace_bind=False):
         widget_connections = self.connections.get(widget, None)
@@ -173,10 +206,14 @@ class Store(object):
             mapper(self.state, widget)
         if dispatcher:
             dispatch_properties = dispatcher(self.__dispatch, widget)
+            if not dispatch_properties:
+                raise NotImplementedError("Requires some thing to bind with dispatcher object not empty")
             bind_props = dispatch_properties.get(ConnectionProps.bind,{})
             init_props = dispatch_properties.get(ConnectionProps.init, {})
             for initializer in init_props:
                 setattr(widget, initializer, init_props[initializer])
+            setattr(widget, StoreProps.widget_key, self.__num_of_connections)
             widget_connections = self.__add_widget_binders(widget, widget_connections, bind_props, replace_bind)
             widget_connections[StoreProps.binding]= self.__bind_props_with_widget(widget, widget_connections.get(StoreProps.binding))
-        self.__widgets_connections[widget] = widget_connections
+            widget_connections[StoreProps.widget] = widget
+        self.__widgets_connections[getattr(widget, StoreProps.widget_key)] = widget_connections

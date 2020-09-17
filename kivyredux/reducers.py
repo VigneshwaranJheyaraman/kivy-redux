@@ -5,8 +5,7 @@ class Reducer(object):
 
     def __init__(self, id, reducer_cb=None):
         self.__id = id
-        self.__state ={}
-        self.reducer = reducer_cb 
+        self.__reducer_function = reducer_cb 
 
     @property
     def id(self):
@@ -19,13 +18,4 @@ class Reducer(object):
     @reducer.setter
     def reducer(self, reducer_new_cb):
         if reducer_new_cb:
-            self.__reducer_function = reducer_new_cb else lambda state, widget: state
-    
-    @property
-    def state(self):
-        return self.__state
-    
-    @state.setter
-    def state(self, new_state):
-        if new_state:
-            self.__state = new_state
+            self.__reducer_function = reducer_new_cb if reducer_new_cb else lambda state, widget: state
