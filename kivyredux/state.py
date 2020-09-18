@@ -1,7 +1,7 @@
 class State(object):
     def __init__(self, **kwargs):
         for each_attribute in kwargs:
-            setattr(State, each_attribute, kwargs[each_attribute])
+            setattr(self, each_attribute, kwargs[each_attribute])
     
     def get(self, key):
         return getattr(self, key)
@@ -11,10 +11,10 @@ class State(object):
             setattr(self, key, value)
     
     @staticmethod
-    def get(key):
+    def get_key(key):
         return getattr(State,key)
     
     @staticmethod
-    def update(key, value):
+    def update_key(key, value):
         if hasattr(State, key):
             setattr(State, key, value)

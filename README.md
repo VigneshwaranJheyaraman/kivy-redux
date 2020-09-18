@@ -16,8 +16,8 @@ kivy-redux requires a python of version on or later 3.x i.e., python>=3.x
     * *get* to get a requested attribute from state (instance method)
     * *update* to update a particular attribute within the state (instance method)
     * #### Static methods
-        * *get* get a common attribute inside a State object
-        * *update* update a common attribute within the state object
+        * *get_key* get a common attribute inside a State object
+        * *update_key* update a common attribute within the state object
 * ### Action
   * **Action** class lets you create actions for every dispatch to be mapped
     * Action(action_type, **data_to_be_used_by_action)
