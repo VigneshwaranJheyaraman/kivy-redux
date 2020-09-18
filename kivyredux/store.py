@@ -16,9 +16,7 @@ class Store(object):
         self.__store_reducers = {}
         self.__store = state
         for each_reducer in reducers:
-            if type(each_reducer) != Reducer:
-                raise NotReducerType("Expected a Reducer object got an {}".format(type(each_reducer)))
-            self.__store_reducers[each_reducer.id] = each_reducer.reducer
+            self.add
         self.__widgets_connections = {}
         self.__num_of_connections =0
         self.__widget_connection_object = {
@@ -102,6 +100,15 @@ class Store(object):
             widget_connections[StoreProps.binding]+= update_bind_properties
         return widget_connections
     
+    def add_reducer(self, new_reducer):
+            '''
+                Adds a reducer to the reducer's collection
+            '''
+            if type(new_reducer) != Reducer:
+                raise NotReducerType("Expected a Reducer object got an {}".format(type(new_reducer)))
+            if new_reducer.id in self.__store_reducers:
+                raise KeyError("The reducer {} already exists".format(new_reducer.id))
+            self.__store_reducers[new_reducer.id] = new_reducer.reducer
     def __bind_props_with_widget(self, widget, widget_dispatch_props):
         '''
             Bind the properties with dispatch_props
@@ -212,7 +219,7 @@ class Store(object):
             init_props = dispatch_properties.get(ConnectionProps.init, {})
             for initializer in init_props:
                 setattr(widget, initializer, init_props[initializer])
-            setattr(widget, StoreProps.widget_key, self.__num_of_connections)
+            widget.create_property(StoreProps.widget_key, self.__num_of_connections)
             widget_connections = self.__add_widget_binders(widget, widget_connections, bind_props, replace_bind)
             widget_connections[StoreProps.binding]= self.__bind_props_with_widget(widget, widget_connections.get(StoreProps.binding))
             widget_connections[StoreProps.widget] = widget

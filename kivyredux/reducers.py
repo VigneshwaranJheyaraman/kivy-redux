@@ -3,8 +3,8 @@ class Reducer(object):
         Reducer class which handles the action and updates the state
     '''
 
-    def __init__(self, id, reducer_cb=None):
-        self.__id = id
+    def __init__(self, id=None, reducer_cb=None):
+        self.__id = id if id else self.__hash__()
         self.__reducer_function = reducer_cb 
 
     @property
