@@ -7,7 +7,7 @@ class State(object):
         return getattr(self, key)
     
     def update(self, key, value):
-        if hasattr(self, key) and value:
+        if hasattr(self, key):
             setattr(self, key, value)
     
     @staticmethod
@@ -16,5 +16,5 @@ class State(object):
     
     @staticmethod
     def update(key, value):
-        if hasattr(State, key) and value:
+        if hasattr(State, key):
             setattr(State, key, value)
