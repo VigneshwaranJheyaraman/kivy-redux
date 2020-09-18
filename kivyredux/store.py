@@ -149,8 +149,9 @@ class Store(object):
             raise NoWidgetConnected("Excepted Widget type object instead got {}".format(type(widget)))
         if "function" in str(widget):
             #its a functional component
+            connect_function = self.__connect
             exec('''def {}(*largs, **kwargs): 
-                return self.__connect(
+                return connect_function(
                     mapper=mapper, 
                     dispatcher=dispatcher, 
                     widget=widget(*largs, **kwargs)
