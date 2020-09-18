@@ -220,8 +220,8 @@ class Store(object):
             bind_props = dispatch_properties.get(ConnectionProps.bind,{})
             init_props = dispatch_properties.get(ConnectionProps.init, {})
             for initializer in init_props:
-                setattr(widget, initializer, init_props[initializer])
-            widget.create_property(StoreProps.widget_key, self.__num_of_connections)
+                widget.create_property(initializer, init_props[initializer])
+            setattr(StoreProps.widget_key, self.__num_of_connections)
             widget_connections = self.__add_widget_binders(widget, widget_connections, bind_props, replace_bind)
             widget_connections[StoreProps.binding]= self.__bind_props_with_widget(widget, widget_connections.get(StoreProps.binding))
             widget_connections[StoreProps.widget] = widget

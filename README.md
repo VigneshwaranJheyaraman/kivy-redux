@@ -138,8 +138,11 @@ ByeFunction = common_store.connect(bye_mapper, bye_dispatcher, Label)
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from .hi import HiClass, ByeFunction
+from kivy.factory import Factory
 class HB(App):
     def build(self):
+        Factory.register('ByeFunction', cls=ByeFunction)
+        Factory.register('HiClass', cls=HiClass)
         b= BoxLayout()
         b.add_widget(HiClass())
         b.add_widget(ByeFunction())
