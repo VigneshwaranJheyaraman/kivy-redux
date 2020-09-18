@@ -1,11 +1,12 @@
 import setuptools
+from kivyredux import __version__
 
 with open('README.md','r') as readme_file:
     DOCUMENTATION = readme_file.read()
 
 setuptools.setup(
     name='kivyredux',
-    version='1.0.1',
+    version=__version__',
     author='VickySuraj',
     author_email='vigneshwaranjheyaraman@gmail.com',
     description='kivyredux - Redux for Kivy',
