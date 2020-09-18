@@ -5,7 +5,7 @@ with open('README.md','r') as readme_file:
 
 setuptools.setup(
     name='kivyredux',
-    version='1.0',
+    version='1.0.1',
     author='VickySuraj',
     author_email='vigneshwaranjheyaraman@gmail.com',
     description='kivyredux - Redux for Kivy',
