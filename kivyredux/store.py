@@ -149,14 +149,13 @@ class Store(object):
             raise NoWidgetConnected("Excepted Widget type object instead got {}".format(type(widget)))
         if "function" in str(widget):
             #its a functional component
-            connect_function = self.__connect
-            exec('''def {}(*largs, **kwargs): 
-                return connect_function(
-                    mapper=mapper, 
-                    dispatcher=dispatcher, 
-                    widget=widget(*largs, **kwargs)
-                )'''.format(widget.__name__))
-            return locals().get(widget.__name__)
+            new_widget = lambda *largs, **kwargs:self.__connect(
+                widget=widget(*largs, **kwargs),
+                mapper=mapper,
+                dispatcher=dispatcher,
+            )
+            new_widget.__qualname__ = widget.__name__
+            return new_widget
         elif "class" in str(widget):
             store_connector = self.__connect
             def init_function(self, **kwargs):

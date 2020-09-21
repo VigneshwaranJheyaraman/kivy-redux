@@ -97,8 +97,10 @@ common_store = Store(reducers=[hi_bye_reducer], state=common_state)
 #:kivy 1.1.0
 <HiClass>:
     text:'HI' if self.hi else 'Bye'
-<ByeFunction>:
-    text:'Bye' if self.bye else 'Hi'
+#Functional component cannot be specified with basic props
+#i.e.,
+#<ByeFunction>:
+#    color:[1,1,1,1] #doesn't work
 '''
 #hi.py
 from kivy.uix.label import Label
@@ -107,12 +109,18 @@ from .store import common_store, hi_action, bye_action
 #class components
 Builder.load_file('hi_bye.kv')
 class Hi(Label):
-    __widget__ = 'HiClass' # important to map with .kv file's name
+    '''
+        Class component which inherits Label widget
+    '''
+    __widget__ = 'HiClass' # [IMPORTANT] to map with .kv file's name
     pass
+
 def mapper(state, widget):
+    #Maps Hi
     widget.hi = state.get('saying_hi')
 
 def dispatcher(dispatch, widget):
+    #dispatches hi action
     return {
         'bind':{
             'hi':lambda *largs, **kwargs: dispatch(hi_action)
@@ -121,10 +129,15 @@ def dispatcher(dispatch, widget):
             'hi':False
         }
     }
-HiClass= common_store.connect(mapper, dispatcher, Hi)
+
+HiClass= common_store.connect(mapper, dispatcher, Hi)#class component created
+
 def bye_mapper(state,widget):
+    #Maps bye
     widget.bye = state.get('saying_bye')
+
 def bye_dispatcher(dispatch, widget):
+    #Dispatches bye action
     return {
         'bind':{
             'bye':lambda *largs, **kwargs: dispatch(bye_action)
@@ -133,21 +146,35 @@ def bye_dispatcher(dispatch, widget):
             'bye':True
         }
     }
-ByeFunction = common_store.connect(bye_mapper, bye_dispatcher, Label)
+
+def ByeFunction(*largs, **kwargs):
+    '''
+        Functional component which returns a Label widget
+    '''
+    return Label(**kwargs)
+
+ByeFunction = cs.connect(bye_mapper, bye_dispatcher, ByeFunction)#Functional component created
 #main.py
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from .hi import HiClass, ByeFunction
 from kivy.factory import Factory
-class HB(App):
+class HBContainer(BoxLayout):
+    pass
+
+class HBApp(App):
     def build(self):
         Factory.register('ByeFunction', cls=ByeFunction)
         Factory.register('HiClass', cls=HiClass)
-        b= BoxLayout()
-        b.add_widget(HiClass())
-        b.add_widget(ByeFunction())
-        return b
-```
+        return HBContainer()
 
+#hb.kv
+'''
+<HBContainer>:
+    HiClass:
+    ByeFunction:
+        text:'Bye' if self.bye else 'Hi'
+'''
+```
 ## License
 [MIT](https://github.com/VigneshwaranJheyaraman/kivy-redux/LICENSE)
