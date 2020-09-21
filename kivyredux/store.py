@@ -227,5 +227,5 @@ class Store(object):
                 widget.create_property(initializer, init_props[initializer])
             widget_connections = self.__add_widget_binders(widget, widget_connections, bind_props, replace_bind)
             widget_connections[StoreProps.binding]= self.__bind_props_with_widget(widget, widget_connections.get(StoreProps.binding))
-            widget_connections[StoreProps.widget] = widget
+        widget_connections[StoreProps.widget] = widget
         self.__widgets_connections[getattr(widget, StoreProps.widget_key)] = widget_connections

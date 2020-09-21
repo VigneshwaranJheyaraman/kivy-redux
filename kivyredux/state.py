@@ -4,7 +4,7 @@ class State(object):
             setattr(self, each_attribute, kwargs[each_attribute])
     
     def get(self, key):
-        return getattr(self, key)
+        return getattr(self, key, None)
     
     def update(self, key, value):
         if hasattr(self, key):
@@ -12,7 +12,7 @@ class State(object):
     
     @staticmethod
     def get_key(key):
-        return getattr(State,key)
+        return getattr(State,key, None)
     
     @staticmethod
     def update_key(key, value):
