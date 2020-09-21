@@ -56,7 +56,7 @@ class Store(object):
         '''
         if not widget:
             raise NoWidgetConnected("Expected Widget object got {} object".format(type(widget)))
-        if not self.connections.get(widget, None):
+        if not hasattr(widget, StoreProps.widget_key) or not self.connections.get(getattr(widget, StoreProps.widget_key), None):
             raise NoWidgetConnected("Cannot map or bind with None object first connect the store with the Widget")
         if dispatcher and ConnectionProps.init in dispatcher:
             del dispatcher[ConnectionProps.init]
@@ -209,7 +209,9 @@ class Store(object):
             self.__store = reducers_list[each_reducer](action, self.state)
     
     def __update_connections(self, widget, mapper=None, dispatcher=None, replace_map=False, replace_bind=False):
-        widget_connections = self.connections.get(widget, None)
+        if not hasattr(widget, StoreProps.widget_key):
+            setattr(widget, StoreProps.widget_key, self.__num_of_connections)
+        widget_connections = self.connections.get(getattr(widget, StoreProps.widget_key), None)
         if not widget_connections:
             widget_connections = deepcopy(self.__widget_connection_object)
         if mapper:
@@ -223,7 +225,6 @@ class Store(object):
             init_props = dispatch_properties.get(ConnectionProps.init, {})
             for initializer in init_props:
                 widget.create_property(initializer, init_props[initializer])
-            setattr(widget, StoreProps.widget_key, self.__num_of_connections)
             widget_connections = self.__add_widget_binders(widget, widget_connections, bind_props, replace_bind)
             widget_connections[StoreProps.binding]= self.__bind_props_with_widget(widget, widget_connections.get(StoreProps.binding))
             widget_connections[StoreProps.widget] = widget

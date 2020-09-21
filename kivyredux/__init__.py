@@ -3,4 +3,4 @@ from kivyredux.store import Store
 from kivyredux.actions import Action
 from kivyredux.reducers import Reducer
 from kivyredux.mixins import StoreWidgetInternalMapper
-__version__ = "1.0.6"
+__version__ = "1.0.7"
